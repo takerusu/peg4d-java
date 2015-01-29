@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Method;
 
+import org.peg4d.csharp.CSharpWriter;
 import org.peg4d.data.RelationBuilder;
 import org.peg4d.jvm.JavaByteCodeGenerator;
 import org.peg4d.pegcode.GrammarFormatter;
@@ -298,6 +299,21 @@ public class Main {
 	}
 	
 	private static int StatTimes = 10;
+	
+	public static void pCheck() {
+		Grammar peg = newGrammar();
+		ParsingContext context = new ParsingContext(newParsingSource(peg));
+		context.match(peg, StartingPoint, new MemoizationManager());
+		long consumed = context.getPosition();
+		long l = context.source.length();
+		if(l == consumed) {
+			context.setPosition(0);
+			ParsingObject po = context.parse(peg, StartingPoint);
+			CSharpWriter writer = new CSharpWriter();
+			String s = writer.generate(po);
+			System.out.println(s);
+		}
+	}
 	
 	public static void check() {
 		Grammar peg = newGrammar();

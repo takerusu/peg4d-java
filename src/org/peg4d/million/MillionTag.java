@@ -120,5 +120,20 @@ public class MillionTag {
 	public static final int TAG_TABLE_PROPERTY = ParsingTag.tagId("TableProperty");
 	public static final int TAG_TABLE_SETTER_APPLY = ParsingTag.tagId("TableSetterApply");
 	public static final int TAG_VARIADIC_PARAMETER = ParsingTag.tagId("VariadicParameter");
-	
+	public static final int TAG_SOURCE = ParsingTag.tagId("Source");
+	public static final int TAG_UNTYPED = ParsingTag.tagId("Untyped");
+	public static final int TAG_UNDEFINED = ParsingTag.tagId("Undefined");
+	public static final int TAG_OBJECT = ParsingTag.tagId("Object");
+	public static final int TAG_PROPERTY = ParsingTag.tagId("Property");
+	public static final int TAG_GETTER = ParsingTag.tagId("Getter");
+	public static final int TAG_SETTER = ParsingTag.tagId("Setter");
+	public static final int TAG_DELETE_PROPERTY = ParsingTag.tagId("DeleteProperty");
+	public static final int TAG_VOID_EXPRESSION = ParsingTag.tagId("VoidExpression");
+	public static final int TAG_EMPTY = ParsingTag.tagId("Empty");
+	public static final int TAG_WITH = ParsingTag.tagId("With");
+	public static final int TAG_CASE_BLOCK = ParsingTag.tagId("CaseBlock");
+	public static final int TAG_LABEL = ParsingTag.tagId("Label");
+	public static final int TAG_THROW = ParsingTag.tagId("Throw");
+	public static final int TAG_DEBUGGER = ParsingTag.tagId("Debugger");
+	public static final int TAG_BLOCK = ParsingTag.tagId("Block");
 }
