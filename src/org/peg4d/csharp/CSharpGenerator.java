@@ -868,8 +868,11 @@ public class CSharpGenerator extends SourceGenerator {
 		}
 	}
 	
+	private boolean inParam = false;
+	
 	public void visitFuncDecl(ParsingObject node) {
 		boolean mustWrap = this.currentBuilder.isStartOfLine();
+		boolean isDelegate = false;
 
 		if(mustWrap){
 			this.currentBuilder.appendChar('(');
@@ -882,6 +885,7 @@ public class CSharpGenerator extends SourceGenerator {
 			this.visit(node.get(2));
 		} else {
 			this.currentBuilder.append("(Func<>)delegate");
+			isDelegate = true;
 		}
 		ParsingObject typeparam = node.get(3);
 		if(!isNullOrEmpty(typeparam)) {
@@ -904,7 +908,9 @@ public class CSharpGenerator extends SourceGenerator {
 			if(!isFirst){
 				this.currentBuilder.append(", ");
 			}
-			
+			if(param.is(MillionTag.TAG_NAME)) {
+				this.currentBuilder.append("Type ");
+			}
 			this.visit(param);
 			isFirst = false;
 		}
@@ -912,7 +918,9 @@ public class CSharpGenerator extends SourceGenerator {
 			if(!isFirst){
 				this.currentBuilder.append(", ");
 			}
+			inParam = true;
 			this.visit(variadicParameter);
+			inParam = false;
 		}
 		this.currentBuilder.appendChar(')');
 		
@@ -925,6 +933,9 @@ public class CSharpGenerator extends SourceGenerator {
 	
 		if(mustWrap){
 			this.currentBuilder.appendChar(')');
+		}
+		if(isDelegate && node.getParent().is(MillionTag.TAG_VAR_DECL)) {
+			this.currentBuilder.appendChar(';');
 		}
 	}
 	
@@ -968,9 +979,9 @@ public class CSharpGenerator extends SourceGenerator {
 			}
 		}
 		if(isAllMemberIsArrayStyle){
-			this.currentBuilder.append("__unpack(");
+			this.currentBuilder.append("({");
 			this.generateList(node, ", ");
-			this.currentBuilder.append(")");
+			this.currentBuilder.append("})");
 		}else{
 			List<ParsingObject> arrayStyleMember = new ArrayList<ParsingObject>();
 			List<ParsingObject> setterStyleMember = new ArrayList<ParsingObject>();
@@ -984,33 +995,53 @@ public class CSharpGenerator extends SourceGenerator {
 					arrayStyleMember.add(subnode);
 				}
 			}
-			this.currentBuilder.append("(function(){");
+			this.currentBuilder.append("(new {");
 			this.currentBuilder.indent();
-			this.currentBuilder.appendNewLine("var ret = __unpack(");
-			this.generateList(arrayStyleMember, ", ");
-			this.currentBuilder.append(");");
-			for (ParsingObject setter : setterStyleMember) {
-				this.currentBuilder.appendNewLine("ret[");
-				this.visit(setter.get(0));
-				this.visit(setter.get(1), "] = ", ";");
+			if(!arrayStyleMember.isEmpty()) {
+				this.currentBuilder.appendNewLine("array = new Type[]{");
+				this.generateList(arrayStyleMember, ", ");
+				this.currentBuilder.append("},");
+			}
+			if(!setterStyleMember.isEmpty()) {
+				this.currentBuilder.appendNewLine("hashtable = (new Hashtable()),");
 			}
 			for (ParsingObject item : dictionaryStyleMember) {
-				this.currentBuilder.appendNewLine("ret['");
+				this.currentBuilder.appendNewLine();
 				this.visit(item.get(0));
-				this.visit(item.get(1), "'] = ", ";");
+				this.visit(item.get(1), " = ", ",");
 			}
-			this.currentBuilder.appendNewLine("return ret; })()");
 			this.currentBuilder.unIndent();
+			this.currentBuilder.appendNewLine("});");
+			for (ParsingObject setter : setterStyleMember) {
+				this.currentBuilder.appendNewLine();
+				this.visit(node.getParent().getParent().get(0));
+				this.currentBuilder.append(".hashtable.Add(");
+				this.visit(setter.get(0));
+				this.currentBuilder.append(",");
+				this.visit(setter.get(1));
+				this.currentBuilder.append(");");
+			}
 		}
 	}
 	
 	public void visitVariadicParameter(ParsingObject node){
-		this.currentBuilder.append("params");
-		generateAnnotation(node.get(0));
-		this.currentBuilder.appendSmartSpace();
-		this.generateType(node.get(1));
-		this.currentBuilder.appendSpace();
-		this.visit(node.get(2));
+		
+		if(node.size() > 1) {
+			this.currentBuilder.append("params");
+			generateAnnotation(node.get(0));
+			this.currentBuilder.appendSmartSpace();
+			this.generateType(node.get(1));
+			this.currentBuilder.appendSpace();
+			this.visit(node.get(2));
+		} else if(inParam) {
+			this.currentBuilder.append("params");
+			this.currentBuilder.appendSpace();
+			this.currentBuilder.append("Type[]");
+			this.currentBuilder.appendSpace();
+			this.currentBuilder.append("Name");
+		} else {
+			this.currentBuilder.append("Name");
+		}
 	}
 	
 	public void visitCount(ParsingObject node){

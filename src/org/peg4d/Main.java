@@ -312,7 +312,10 @@ public class Main {
 			CSharpWriter writer = new CSharpWriter();
 			String s = writer.generate(po);
 			System.out.println(s);
+			System.exit(0);
 		}
+		System.exit(1);
+
 	}
 	
 	public static void check() {
